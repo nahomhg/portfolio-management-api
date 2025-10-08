@@ -1,0 +1,6 @@
+# Ignore these
+.DS_Store
+.idea/
+*.iml
+*.zip
+target/
