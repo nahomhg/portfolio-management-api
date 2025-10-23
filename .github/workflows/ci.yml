@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: ${{ hashFiles('**/pom.xml') != '' }}
     runs-on: ubuntu-latest
 
     services:
