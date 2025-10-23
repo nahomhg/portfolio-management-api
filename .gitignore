@@ -1,6 +1,17 @@
 # Ignore these
-.DS_Store
-.idea/
-*.iml
-*.zip
 target/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*.zip
+*.log
+.
+
+*.env
+application-local.yml
+src/main/resources/application-local_original.yml
+*.local.yml
+api keys
+
+.mvn/wrapper/maven-wrapper.jar

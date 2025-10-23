@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: portfolio
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd="pg_isready -U app -d portfolio"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+      redis:
+        image: redis:7
+        ports:
+          - "6379:6379"
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/portfolio
+      SPRING_DATASOURCE_USERNAME: app
+      SPRING_DATASOURCE_PASSWORD: app
+      SPRING_PROFILES_ACTIVE: test
+      JWT_SECRET: test-secret
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Build & Test
+        run: ./mvnw -B -ntp verify
