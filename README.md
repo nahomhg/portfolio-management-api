@@ -12,6 +12,7 @@ Providing a single 'source-of-truth' for user's holdings, transactions, cost bas
 - **Caching:** Redis (for 'price' data optimisation)
 - **Auth:** JWT-based Authentication
 - **Container:** Docker
+- **Migration Tool:** Flyway
 
 
 ## Features
