@@ -30,7 +30,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        // The code above can be represented in lambda a lot easier using the Builder Pattern.
         return http
                 .csrf(customizer -> customizer.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -40,6 +39,7 @@ public class SecurityConfig {
                                 "/actuator/info",
                                 "/actuator/metrics",
                                 "/swagger-ui/**",
+                                "/v3/api-docs/**",
                                 "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
