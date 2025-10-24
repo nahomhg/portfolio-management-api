@@ -6,7 +6,6 @@ on:
 
 jobs:
   build:
-    if: ${{ hashFiles('**/pom.xml') != '' }}
     runs-on: ubuntu-latest
 
     services:
@@ -35,6 +34,7 @@ jobs:
       SPRING_DATASOURCE_PASSWORD: app
       SPRING_PROFILES_ACTIVE: test
       JWT_SECRET: test-secret
+      TZ: UTC
 
     steps:
       - name: Checkout
