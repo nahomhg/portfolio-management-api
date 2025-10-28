@@ -9,4 +9,7 @@ import org.springframework.context.annotation.Configuration;
                 description = "Manage crypto assets, portfolios and transactions")
 )
 @Configuration
-public class OpenApiConfig {}
+public class OpenApiConfig {
+
+
+}

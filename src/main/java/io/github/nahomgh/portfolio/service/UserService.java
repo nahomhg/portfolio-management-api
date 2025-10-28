@@ -18,8 +18,8 @@ public class UserService {
         this.emailService = emailService;
     }
 
-    public UserDTO execute() {
-        return new UserDTO(userRepository.findById(getAuthenticatedUser().getId()).get());
+    public UserDTO getProfile(Long userId) {
+        return new UserDTO(userRepository.findById(userId).get());
     }
     private User getAuthenticatedUser(){
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());

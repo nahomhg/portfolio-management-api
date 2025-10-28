@@ -12,7 +12,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    Optional<User> findById(Long id) throws UserNotFoundException;
+    Optional<User> findById(Long id);
 
     Optional<User> findByVerificationCode(String verificationCode);
 
