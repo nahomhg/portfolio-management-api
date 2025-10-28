@@ -11,7 +11,6 @@ import io.github.nahomgh.portfolio.exceptions.DuplicateTransactionException;
 import io.github.nahomgh.portfolio.repository.HoldingRepository;
 import io.github.nahomgh.portfolio.repository.TransactionRepository;
 import io.github.nahomgh.portfolio.repository.UserRepository;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
