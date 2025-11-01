@@ -67,5 +67,5 @@ _Why compute Portfolio Valuation on request instead of storing and reading from 
 - **Database Optimisation:** Database indexing on user_id and asset_name on transactions to allow for efficient transactions search.
 
 
-## Current Limitations and Future Planning:
+## Current Limitations and Future Planning
 - Free API usage limits access to historical data i.e. transactions older than a year cannot have their prices retrieved.
