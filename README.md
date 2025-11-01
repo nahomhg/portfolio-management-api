@@ -32,22 +32,22 @@ Providing a single 'source-of-truth' for user's holdings, transactions, cost bas
 2. Response data is cached in Redis with a 5-minute-TTL. Every 60 seconds endpoint is queried to get up-to-date prices via a scheduled job. The 5-minute TTL acts as a safety net for job failures.
 3. User submits transaction (current or back-dated). Example request:
 Request A:
-'''json
+```json
 {
     "asset":"btc",
     "transactionType":"BUY",
     "units": 0.5
 }
-'''
+```
 Request B:
-'''json
+```json
 {
     "asset":"btc",
     "transactionType":"BUY",
     "units": 0.5,
     "transactionDate" : "2024-10-26"
 }
-'''
+```
 Request A uses current pricing endpoint (cached, fast). Request B uses historical API (not cached, slower) due to CoinGecko's different rate limits on historical data.
 5. 'Holdings' table updates with weighted cost basis and units count.
 6. Portfolio valuation calculated at request time using cached pricing.
