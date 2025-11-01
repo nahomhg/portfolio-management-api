@@ -68,7 +68,7 @@ public class TransactionService {
         }
         String assetName = priceDataService.resolveAssetSymbol(request.asset());
         BigDecimal userHoldings = getAssetHoldingsByUser(assetName, userId);
-        if(request.transactionType().toString().toUpperCase() == TransactionType.SELL.toString() && request.units().compareTo(userHoldings)>0) {
+        if((request.transactionType() == TransactionType.SELL) && (request.units().compareTo(userHoldings)>0)) {
             throw new InsufficientFundsException("Insufficient Funds: You do NOT hold enough units to sell");
         }
         try {

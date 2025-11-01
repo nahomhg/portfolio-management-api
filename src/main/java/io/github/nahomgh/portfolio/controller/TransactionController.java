@@ -3,6 +3,7 @@ package io.github.nahomgh.portfolio.controller;
 import io.github.nahomgh.portfolio.auth.domain.User;
 import io.github.nahomgh.portfolio.dto.TransactionDTO;
 import io.github.nahomgh.portfolio.entity.TransactionRequest;
+import io.github.nahomgh.portfolio.entity.TransactionType;
 import io.github.nahomgh.portfolio.service.TransactionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
