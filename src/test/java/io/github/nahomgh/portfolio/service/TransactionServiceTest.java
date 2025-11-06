@@ -13,10 +13,9 @@ import io.github.nahomgh.portfolio.exceptions.InsufficientFundsException;
 import io.github.nahomgh.portfolio.repository.HoldingRepository;
 import io.github.nahomgh.portfolio.repository.TransactionRepository;
 import io.github.nahomgh.portfolio.repository.UserRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -46,26 +45,35 @@ class TransactionServiceTest {
     @InjectMocks
     private TransactionService transactionService;
 
+    private String idempotencyKey;
+    private User testUser;
+
+    @BeforeEach
+    public void setup(){
+        idempotencyKey = "123";
+        //
+        testUser = new User("nahom_gh@outlook.com","bob","bob123");
+        testUser.setEnabled(true);
+        testUser.setId(1L);
+
+        //
+        Mockito.lenient().when(transactionRepository.findTransactionByUserIdAndClientIdempotencyKey(1L,idempotencyKey)).thenReturn(Optional.empty());
+        Mockito.lenient().when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+    }
+
     private AssetDTO createAsset(){
         return new AssetDTO("bitcoin",
                 "BTC",
                 BigDecimal.valueOf(100_000));
     }
 
-    private User createTestUser(){
-        User user_bob = new User("nahom_gh@outlook.com","bob","bob123");
-        user_bob.setEnabled(true);
-        user_bob.setId(1L);
-        return user_bob;
-    }
-
     private Transaction createTransactionObject(String assetName, String idempotencyKey, User testUser, TransactionType transactionType, BigDecimal unitAmount){
-        BigDecimal units = unitAmount;
-        BigDecimal totalCost = createAsset().price().multiply(units);
+        BigDecimal totalCost = createAsset().price().multiply(unitAmount);
         return new Transaction(
                 assetName,
                 transactionType,
-                units,
+                unitAmount,
                 totalCost,
                 idempotencyKey,
                 testUser,
@@ -86,16 +94,10 @@ class TransactionServiceTest {
     @Test
     void createNewTransaction() {
 
-        User testUser = createTestUser();
-
-        String idempotencyKey = "abc123";
-
         TransactionRequest request = createNewTransactionRequest("BTC", TransactionType.BUY, BigDecimal.valueOf(0.1));
         Transaction transaction = createTransactionObject(request.asset(), idempotencyKey, testUser, TransactionType.BUY, BigDecimal.valueOf(0.1));
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         Mockito.when(holdingRepository.findByAssetAndUser_Id(request.asset(),testUser.getId())).thenReturn(Optional.empty());
-
 
         Mockito.when(priceDataService.resolveAssetSymbol(request.asset())).thenReturn("BTC");
         Mockito.when(priceDataService.getAssetPrice(request.asset())).thenReturn(BigDecimal.valueOf(100_000));
@@ -109,6 +111,13 @@ class TransactionServiceTest {
         Assertions.assertTrue(transaction.getUnits().compareTo(responseTrxn.units()) == 0);
         Assertions.assertTrue(transaction.getPricePerUnit().compareTo(responseTrxn.pricePerUnit())==0);
 
+        InOrder inOrder = Mockito.inOrder(transactionRepository,holdingRepository);
+
+        inOrder.verify(transactionRepository).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
+        inOrder.verify(transactionRepository).save(Mockito.any(Transaction.class));
+        inOrder.verify(holdingRepository, Mockito.atLeastOnce()).findByAssetAndUser_Id("BTC", 1L);
+        inOrder.verify(holdingRepository).save(Mockito.any(Holding.class));
+
         Mockito.verify(holdingRepository,Mockito.times(2)).findByAssetAndUser_Id("BTC",1L);
         Mockito.verify(transactionRepository, Mockito.times(1)).save(Mockito.any(Transaction.class));
 
@@ -116,34 +125,13 @@ class TransactionServiceTest {
 
 
     @Test
-    void createNewTransactionDuplicateDetailsShouldThrowException(){
-        String idempotencyKey = "idemKey123";
-
-        User testUser = createTestUser();
-        TransactionRequest request = createNewTransactionRequest("BTC", TransactionType.BUY, BigDecimal.valueOf(0.1));
-
-        Transaction existingTrxn = createTransactionObject(request.asset(), idempotencyKey, testUser, TransactionType.BUY, BigDecimal.valueOf(0.1));
-
-        Mockito.when(transactionRepository.findTransactionByUserIdAndClientIdempotencyKey(1L,idempotencyKey)).thenReturn(Optional.of(existingTrxn));
-
-        Assertions.assertThrows(DuplicateTransactionException.class, () -> {
-            transactionService.createTransaction(request,idempotencyKey,testUser.getId());
-        });
-        Mockito.verify(transactionRepository, Mockito.times(1)).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
-
-    }
-
-    @Test
     void createSellTransaction(){
-        String idempotencyKey = "idemKey123";
-        User testUser = createTestUser();
 
         Holding btcHolding = new Holding(testUser,"BTC", BigDecimal.valueOf(2.3),BigDecimal.valueOf(55_000));
 
         TransactionRequest sellTransactionRequest = createNewTransactionRequest("BTC", TransactionType.SELL, BigDecimal.valueOf(0.5));
         Transaction transaction = createTransactionObject("BTC",idempotencyKey, testUser, TransactionType.SELL,  BigDecimal.valueOf(0.5));
 
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         Mockito.when(priceDataService.resolveAssetSymbol(sellTransactionRequest.asset())).thenReturn("BTC");
         Mockito.when(priceDataService.getAssetPrice(sellTransactionRequest.asset())).thenReturn(BigDecimal.valueOf(100_000));
         Mockito.when(holdingRepository.findByAssetAndUser_Id("BTC",testUser.getId())).thenReturn(Optional.of(btcHolding));
@@ -157,22 +145,44 @@ class TransactionServiceTest {
         Assertions.assertTrue(transaction.getUnits().compareTo(sellTransactionDTO.units())==0);
 
         Mockito.verify(holdingRepository).save(Mockito.argThat(holding ->
-                   holding.getAsset().equals("BTC") && holding.getUnits().compareTo(BigDecimal.valueOf(1.8)) == 0)
+                holding.getAsset().equals("BTC") && holding.getUnits().compareTo(BigDecimal.valueOf(1.8)) == 0)
         );
+
+        InOrder inOrder = Mockito.inOrder(transactionRepository,holdingRepository);
+
+        inOrder.verify(transactionRepository).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
+        inOrder.verify(transactionRepository).save(Mockito.any(Transaction.class));
+        inOrder.verify(holdingRepository, Mockito.atLeastOnce()).findByAssetAndUser_Id("BTC", 1L);
+        inOrder.verify(holdingRepository).save(Mockito.any(Holding.class));
+
         Mockito.verify(userRepository, Mockito.times(1)).findById(testUser.getId());
         Mockito.verify(priceDataService, Mockito.times(1)).resolveAssetSymbol(sellTransactionRequest.asset());
         Mockito.verify(priceDataService, Mockito.times(1)).getAssetPrice(sellTransactionRequest.asset());
-        Mockito.verify(holdingRepository, Mockito.times(2)).findByAssetAndUser_Id(sellTransactionRequest.asset(),testUser.getId());
+        Mockito.verify(holdingRepository, Mockito.atLeastOnce()).findByAssetAndUser_Id(sellTransactionRequest.asset(),testUser.getId());
+    }
 
+    @Test
+    void createNewTransactionDuplicateDetailsShouldThrowException(){
+
+        TransactionRequest request = createNewTransactionRequest("BTC", TransactionType.BUY, BigDecimal.valueOf(0.1));
+
+        Transaction existingTrxn = createTransactionObject(request.asset(), idempotencyKey, testUser, TransactionType.BUY, BigDecimal.valueOf(0.1));
+
+        Mockito.when(transactionRepository.findTransactionByUserIdAndClientIdempotencyKey(1L,idempotencyKey)).thenReturn(Optional.of(existingTrxn));
+
+        Assertions.assertThrows(DuplicateTransactionException.class, () -> transactionService.createTransaction(request,idempotencyKey,testUser.getId()));
+
+        Mockito.verify(transactionRepository, Mockito.never()).save(Mockito.any());
+
+        Mockito.verify(transactionRepository, Mockito.times(1)).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
 
     }
+
 
 
     @Test
     @DisplayName("Testing - Sell Transaction Fails - Insufficient Funds Exception Thrown")
     void sellTransactionShouldFailWhenInsufficientHoldings(){
-        String idempotencyKey = "idemKey123";
-        User testUser = createTestUser();
 
         // Attempt to sell more assets than held.
         TransactionRequest sellTransactionRequest = createNewTransactionRequest("BTC", TransactionType.SELL, BigDecimal.valueOf(3.1));
@@ -180,16 +190,19 @@ class TransactionServiceTest {
         Holding btcHolding = new Holding(testUser,"BTC", BigDecimal.valueOf(2.3),BigDecimal.valueOf(55_000));
         Mockito.when(priceDataService.resolveAssetSymbol(sellTransactionRequest.asset())).thenReturn(btcHolding.getAsset());
 
-        Mockito.when(transactionRepository.findTransactionByUserIdAndClientIdempotencyKey(1L,idempotencyKey)).thenReturn(Optional.empty());
         Mockito.when(holdingRepository.findByAssetAndUser_Id(btcHolding.getAsset(),testUser.getId())).thenReturn(Optional.of(btcHolding));
 
-        Assertions.assertThrows(InsufficientFundsException.class, () -> {
-           transactionService.createTransaction(sellTransactionRequest,idempotencyKey,testUser.getId());
-        });
+        Assertions.assertThrows(InsufficientFundsException.class, () -> transactionService.createTransaction(sellTransactionRequest,idempotencyKey,testUser.getId()));
+
+        Mockito.verify(holdingRepository, Mockito.never()).save(Mockito.any());
+        Mockito.verify(transactionRepository, Mockito.never()).save(Mockito.any());
+
 
         Mockito.verify(transactionRepository, Mockito.times(1)).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
         Mockito.verify(priceDataService, Mockito.times(1)).resolveAssetSymbol(sellTransactionRequest.asset());
-        Mockito.verify(holdingRepository, Mockito.times(1)).findByAssetAndUser_Id(sellTransactionRequest.asset(),testUser.getId());
+        Mockito.verify(holdingRepository, Mockito.atLeastOnce()).findByAssetAndUser_Id(sellTransactionRequest.asset(),testUser.getId());
     }
+
+
 
 }
