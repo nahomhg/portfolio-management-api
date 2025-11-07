@@ -133,7 +133,7 @@ class TransactionServiceTest {
         Transaction transaction = createTransactionObject("BTC",idempotencyKey, testUser, TransactionType.SELL,  BigDecimal.valueOf(0.5));
 
         Mockito.when(priceDataService.resolveAssetSymbol(sellTransactionRequest.asset())).thenReturn("BTC");
-        Mockito.when(priceDataService.getAssetPrice(sellTransactionRequest.asset())).thenReturn(BigDecimal.valueOf(100_000));
+        Mockito.when(priceDqataService.getAssetPrice(sellTransactionRequest.asset())).thenReturn(BigDecimal.valueOf(100_000));
         Mockito.when(holdingRepository.findByAssetAndUser_Id("BTC",testUser.getId())).thenReturn(Optional.of(btcHolding));
         Mockito.when(transactionRepository.save(Mockito.any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

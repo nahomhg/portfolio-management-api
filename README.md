@@ -21,13 +21,13 @@ Providing a single 'source-of-truth' for user's holdings, transactions, cost bas
 - PnL tracking across all holdings.
 - RESTful API design with error handling.
 
-## Architecture
+##  Architecture
 
 ### System Overview
 - User has an account where they can securely note their transactions at certain price points and specific times.
 - Application will store transactions and dynamically work out an asset's unrealisedPnL, its weight in the portfolio as well as total portfolio unrealisedPnL.
 
-### Data Flow
+###  Data Flow
 1. Upon application start, we send an API request to CoinGecko's pricing API and receive top 100 assets.
 2. Response data is cached in Redis with a 5-minute-TTL. Every 60 seconds endpoint is queried to get up-to-date prices via a scheduled job. The 5-minute TTL acts as a safety net for job failures.
 3. User submits transaction (current or back-dated). Example request:
@@ -70,5 +70,5 @@ _Why compute Portfolio Valuation on request instead of storing and reading from 
 - **Database Optimisation:** Database indexing on user_id and asset_name on transactions to allow for efficient transactions search.
 
 
-## Current Limitations and Future Planning
+##  Current Limitations and Future Planning
 - Free API usage limits access to historical data i.e. transactions older than a year cannot have their prices retrieved.
