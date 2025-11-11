@@ -3,6 +3,7 @@ package io.github.nahomgh.portfolio.auth.service;
 import io.github.nahomgh.portfolio.auth.dto.LoginRequestDTO;
 import io.github.nahomgh.portfolio.auth.dto.VerifyUserDTO;
 import io.github.nahomgh.portfolio.auth.domain.User;
+import io.github.nahomgh.portfolio.dto.RegisterDTO;
 import io.github.nahomgh.portfolio.dto.UserDTO;
 import io.github.nahomgh.portfolio.exceptions.*;
 import io.github.nahomgh.portfolio.repository.UserRepository;
@@ -49,19 +50,25 @@ public class AuthenticationService {
         throw new ResourceNotFoundException("ERROR: Account NOT associated with current user");
     }
 
-    public UserDTO signUp(User userInfo) {
-        Optional<User> user = userRepository.findByEmail(userInfo.getEmail());
-        if(user.isEmpty()){
-            userInfo.setPassword(encoder.encode(userInfo.getPassword()));
-            userInfo.setVerificationCode(generateVerificationCode());
-            userInfo.setVerificationExpiration(Instant.now().plusSeconds(900));
-            User saved_user = userRepository.save(userInfo);
-            sendVerificationEmail(userInfo);
-            logger.info("SUCCESS: User created");
-            return new UserDTO(saved_user);
+    public UserDTO signUp(RegisterDTO userSignUpDetails) {
+        Optional<User> user = userRepository.findByEmail(userSignUpDetails.email());
+        if(user.isPresent()) {
+            logger.error("ERROR: User already exists");
+            throw new UserAlreadyExistsException("User with email " + userSignUpDetails.email() + " already exists!");
         }
-        logger.error("ERROR: User already exists");
-        throw new UserAlreadyExistsException("ERROR: User with email "+userInfo.getEmail()+" ALREADY exists");
+        User registeredUser = new User();
+        registeredUser.setEmail(userSignUpDetails.email());
+        registeredUser.setUsername(userSignUpDetails.username());
+        registeredUser.setPassword(encoder.encode(userSignUpDetails.password()));
+        registeredUser.setVerificationCode(generateVerificationCode());
+        registeredUser.setVerificationExpiration(Instant.now().plusSeconds(900));
+        registeredUser.setEnabled(false);
+
+        userRepository.save(registeredUser);
+        sendVerificationEmail(registeredUser);
+
+        logger.info("SUCCESS: User created");
+        return new UserDTO(registeredUser);
     }
 
     public String authenticate(LoginRequestDTO loginRequest) {

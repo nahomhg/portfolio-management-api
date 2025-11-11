@@ -6,6 +6,7 @@ import io.github.nahomgh.portfolio.auth.dto.LoginRequestDTO;
 import io.github.nahomgh.portfolio.auth.dto.ResendVerificationCodeDTO;
 import io.github.nahomgh.portfolio.auth.dto.VerifyUserDTO;
 import io.github.nahomgh.portfolio.auth.service.JWTService;
+import io.github.nahomgh.portfolio.dto.RegisterDTO;
 import io.github.nahomgh.portfolio.dto.UserDTO;
 import io.github.nahomgh.portfolio.auth.service.AuthenticationService;
 import jakarta.validation.Valid;
@@ -26,8 +27,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody User user) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.signUp(user));
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody RegisterDTO registeredUser) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.signUp(registeredUser));
     }
 
     @PostMapping("/login")

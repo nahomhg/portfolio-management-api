@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
@@ -77,14 +80,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
-    public ResponseEntity<ErrorResponse> handleMethodNotValidException(MethodArgumentNotValidException methodArgumentNotValidException){
-        String errorMsg = methodArgumentNotValidException.getBindingResult()
+    public ResponseEntity<ValidationsErrorResponse> handleMethodNotValidException(MethodArgumentNotValidException methodArgumentNotValidException){
+        List<String> errors = new ArrayList<>();
+
+        methodArgumentNotValidException.getBindingResult()
                 .getFieldErrors()
-                .stream()
-                .map(error -> error.getDefaultMessage())
-                .findFirst()
-                .orElse("Validation Failed");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(errorMsg));
+                .forEach(error -> errors.add(error.getDefaultMessage()));
+
+        methodArgumentNotValidException.getBindingResult()
+                .getGlobalErrors()
+                .forEach(error -> errors.add(error.getDefaultMessage()));
+
+        String message = errors.isEmpty() ? "Validation Error" : "Validation Failed";
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ValidationsErrorResponse(message, errors));
     }
 
 
