@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>io.github.nahomgh.portfolio</groupId>
-    <artifactId>demo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>demo</name>
-    <description>portfolio.app</description>
+    <artifactId>portfolio-mgmt-api</artifactId>
+    <version>1.0.0</version>
+    <name>Portfolio Management API</name>
+    <description>A Spring Boot API for cryptocurrency portfolio management with real-time pricing and transaction tracking</description>
     <url/>
     <licenses>
         <license/>

@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Random;
@@ -138,7 +139,7 @@ public class AuthenticationService {
     }
 
     private String generateVerificationCode(){
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         int code = 100000 + random.nextInt(900000); // Ensures 6 digits
         return String.valueOf(code);
     }

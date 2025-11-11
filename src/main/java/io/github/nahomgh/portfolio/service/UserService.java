@@ -21,7 +21,5 @@ public class UserService {
     public UserDTO getProfile(Long userId) {
         return new UserDTO(userRepository.findById(userId).get());
     }
-    private User getAuthenticatedUser(){
-        return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-    }
+
 }

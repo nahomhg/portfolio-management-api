@@ -1,6 +1,7 @@
 package io.github.nahomgh.portfolio.entity;
 
 import io.github.nahomgh.portfolio.auth.domain.User;
+import io.github.nahomgh.portfolio.exceptions.InsufficientFundsException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -81,8 +82,13 @@ public class Holding {
     }
 
     public BigDecimal getAvgCostBasis() {
-        return getTotalCostBasis() == null || getTotalCostBasis().compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO
-                : getTotalCostBasis().divide(getUnits(),8, RoundingMode.HALF_UP);
+        if(getUnits() != null && getUnits().compareTo(BigDecimal.ZERO) > 0) {
+            if (getTotalCostBasis() == null || getTotalCostBasis().compareTo(BigDecimal.ZERO) == 0) {
+                return BigDecimal.ZERO;
+            }
+            return getTotalCostBasis().divide(getUnits(), 8, RoundingMode.HALF_UP);
+        }
+        throw new InsufficientFundsException("Insufficient Units");
     }
 
 

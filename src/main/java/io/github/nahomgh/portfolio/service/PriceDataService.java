@@ -14,7 +14,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.http.*;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -94,16 +93,17 @@ public class PriceDataService {
         return response.get(assetName).get("usd");
     }
 
-    public BigDecimal getHistoricalAssetPrice(String assetNamePassed, LocalDate transactionDate){
+    public BigDecimal getHistoricalAssetPrice(String assetNamePassed, LocalDate  transactionDate){
         String assetName = resolveAssetSymbol(assetNamePassed);
-        URI uri = UriComponentsBuilder
-                .fromUriString(HISTORICAL_PRICE_URI)
-                .path(assetName)
-                .path("/history")
-                .queryParam("date",transactionDate)
-                .build().toUri();
-        logger.info("URI built: to query price for "+assetName+" at "+transactionDate.toString());
-        return fetchHistoricalMarketData(uri);
+            URI uri = UriComponentsBuilder
+                    .fromUriString(HISTORICAL_PRICE_URI)
+                    .path(assetName)
+                    .path("/history")
+                    .queryParam("date", transactionDate)
+                    .build().toUri();
+            logger.info("URI built: to query price for " + assetName + " at " + transactionDate.toString());
+            return fetchHistoricalMarketData(uri);
+
     }
 
     public BigDecimal fetchHistoricalMarketData(URI uri){

@@ -67,15 +67,11 @@ public class TransactionService {
             return new TransactionDTO(existingTransaction.get());
         }
         String assetName = priceDataService.resolveAssetSymbol(request.asset());
-        BigDecimal userHoldings = getAssetHoldingsByUser(assetName, userId);
-        if((request.transactionType() == TransactionType.SELL) && (request.units().compareTo(userHoldings)>0)) {
-            throw new InsufficientFundsException("Insufficient Funds: You do NOT hold enough units to sell");
-        }
         try {
             BigDecimal assetPrice = BigDecimal.ZERO;
             boolean isOldTransaction = false;
             if(request.transactionDate() != null && request.transactionDate().isBefore(LocalDate.now())){
-                assetPrice = priceDataService.getHistoricalAssetPrice(request.asset(),request.transactionDate());
+                assetPrice = priceDataService.getHistoricalAssetPrice(request.asset(), request.transactionDate());
                 isOldTransaction = true;
             }else
                 assetPrice = priceDataService.getAssetPrice(assetName);
@@ -93,9 +89,9 @@ public class TransactionService {
                             ? request.transactionDate().atStartOfDay(ZoneId.of("UTC")).toInstant()
                             : Instant.now());
 
+            processTransaction(userInfo, assetName, request.units(), assetPrice, request.transactionType());
             Transaction transactionSaved = transactionRepository.save(trxn);
             logger.debug("NOTE: Beginning processing transaction");
-            processTransaction(userInfo, assetName, request.units(), assetPrice, request.transactionType());
             logger.debug("SUCCESS: Transaction Added To User and Holdings updated");
             return new TransactionDTO(transactionSaved);
         }catch(DuplicateKeyException dupe){
@@ -122,6 +118,7 @@ public class TransactionService {
     )
     private void processTransaction(User user, String assetName, BigDecimal units, BigDecimal pricePerUnit, TransactionType transactionType){
         Optional<Holding> existingHolding = holdingRepository.findByAssetAndUser_Id(assetName, user.getId());
+
         if(transactionType == TransactionType.BUY){
             if(existingHolding.isPresent()){
                 Holding holding = existingHolding.get();
@@ -140,7 +137,13 @@ public class TransactionService {
             }
         }else{ // Transaction is SELL
             if(existingHolding.isPresent()){
-                Holding holding = existingHolding.get();
+                Holding holding = existingHolding.orElseThrow(
+                        () -> new InsufficientFundsException("No Holdings For Asset"+assetName)
+                );
+                if(units.compareTo(holding.getUnits())>0) {
+                    throw new InsufficientFundsException("Insufficient Funds: You do NOT hold enough units to sell");
+                }
+
                 BigDecimal updatedUnits = existingHolding.get().getUnits().subtract(units);
 
                 if(updatedUnits.compareTo(BigDecimal.ZERO)==0){
@@ -154,10 +157,6 @@ public class TransactionService {
             }
         }
 
-    }
-
-    private BigDecimal getAssetHoldingsByUser(String assetName, Long userId){
-        return holdingRepository.findByAssetAndUser_Id(assetName, userId).map(Holding::getUnits).orElse(BigDecimal.ZERO);
     }
 
 }

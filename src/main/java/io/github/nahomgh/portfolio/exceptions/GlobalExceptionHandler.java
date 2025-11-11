@@ -78,7 +78,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
     public ResponseEntity<ErrorResponse> handleMethodNotValidException(MethodArgumentNotValidException methodArgumentNotValidException){
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(methodArgumentNotValidException.getMessage()));
+        String errorMsg = methodArgumentNotValidException.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation Failed");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(errorMsg));
     }
 
 

@@ -4,7 +4,7 @@ public class UnsupportedAssetException extends RuntimeException {
     public UnsupportedAssetException(){
 
     }
-    public UnsupportedAssetException(String s) {
-        super(s);
+    public UnsupportedAssetException(String message) {
+        super(message);
     }
 }

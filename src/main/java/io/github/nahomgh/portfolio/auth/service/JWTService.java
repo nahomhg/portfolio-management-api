@@ -33,17 +33,11 @@ public class JWTService {
 
     private SecretKey signingKey;
 
-    @Value("${spring.profiles.active:}")
-    private String activeProfile;
 
     @PostConstruct
     public void initKey(){
-        logger.info("Active profile detected: '{}'", activeProfile);
 
         if((secretKeyBase64 == null) || (secretKeyBase64.isBlank())){
-            if("prod".equals(activeProfile))
-                throw new IllegalStateException("JWT secret is required in production");
-
             try{
                 KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
                 signingKey = keyGenerator.generateKey();

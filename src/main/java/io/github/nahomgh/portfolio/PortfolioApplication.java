@@ -18,10 +18,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableScheduling
 @EnableRetry
 @Log4j2
-public class Main {
+public class PortfolioApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        SpringApplication.run(PortfolioApplication.class, args);
     }
 
     @Bean

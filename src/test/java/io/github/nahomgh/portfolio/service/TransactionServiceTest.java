@@ -114,11 +114,11 @@ class TransactionServiceTest {
         InOrder inOrder = Mockito.inOrder(transactionRepository,holdingRepository);
 
         inOrder.verify(transactionRepository).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
-        inOrder.verify(transactionRepository).save(Mockito.any(Transaction.class));
         inOrder.verify(holdingRepository, Mockito.atLeastOnce()).findByAssetAndUser_Id("BTC", 1L);
         inOrder.verify(holdingRepository).save(Mockito.any(Holding.class));
+        inOrder.verify(transactionRepository).save(Mockito.any(Transaction.class));
 
-        Mockito.verify(holdingRepository,Mockito.times(2)).findByAssetAndUser_Id("BTC",1L);
+        Mockito.verify(holdingRepository,Mockito.times(1)).findByAssetAndUser_Id("BTC",1L);
         Mockito.verify(transactionRepository, Mockito.times(1)).save(Mockito.any(Transaction.class));
 
     }
@@ -151,9 +151,9 @@ class TransactionServiceTest {
         InOrder inOrder = Mockito.inOrder(transactionRepository,holdingRepository);
 
         inOrder.verify(transactionRepository).findTransactionByUserIdAndClientIdempotencyKey(1L, idempotencyKey);
-        inOrder.verify(transactionRepository).save(Mockito.any(Transaction.class));
         inOrder.verify(holdingRepository, Mockito.atLeastOnce()).findByAssetAndUser_Id("BTC", 1L);
         inOrder.verify(holdingRepository).save(Mockito.any(Holding.class));
+        inOrder.verify(transactionRepository).save(Mockito.any(Transaction.class));
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(testUser.getId());
         Mockito.verify(priceDataService, Mockito.times(1)).resolveAssetSymbol(sellTransactionRequest.asset());
@@ -191,6 +191,7 @@ class TransactionServiceTest {
         Mockito.when(priceDataService.resolveAssetSymbol(sellTransactionRequest.asset())).thenReturn(btcHolding.getAsset());
 
         Mockito.when(holdingRepository.findByAssetAndUser_Id(btcHolding.getAsset(),testUser.getId())).thenReturn(Optional.of(btcHolding));
+        Mockito.when(priceDataService.getAssetPrice(sellTransactionRequest.asset())).thenReturn(BigDecimal.valueOf(100_000));
 
         Assertions.assertThrows(InsufficientFundsException.class, () -> transactionService.createTransaction(sellTransactionRequest,idempotencyKey,testUser.getId()));
 

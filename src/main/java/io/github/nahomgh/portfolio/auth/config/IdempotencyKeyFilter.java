@@ -30,7 +30,6 @@ public class IdempotencyKeyFilter extends OncePerRequestFilter {
         }
 
         String key = request.getHeader("IDEMPOTENCY_KEY");
-        System.out.println("Key is : "+key);
         if (key == null || key.isBlank() || !ALLOWED.matcher(key).matches()) {
             writeBadRequest(response, "Invalid or missing Idempotency-Key");
             return; // short-circuit
