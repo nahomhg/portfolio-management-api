@@ -1,4 +1,4 @@
-package io.github.nahomgh.portfolio.dto;
+package io.github.nahomgh.portfolio.auth.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.nahomgh.portfolio.auth.validator.PasswordMatchCheck;

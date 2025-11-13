@@ -3,8 +3,8 @@ package io.github.nahomgh.portfolio.auth.service;
 import io.github.nahomgh.portfolio.auth.dto.LoginRequestDTO;
 import io.github.nahomgh.portfolio.auth.dto.VerifyUserDTO;
 import io.github.nahomgh.portfolio.auth.domain.User;
-import io.github.nahomgh.portfolio.dto.RegisterDTO;
-import io.github.nahomgh.portfolio.dto.UserDTO;
+import io.github.nahomgh.portfolio.auth.dto.RegisterDTO;
+import io.github.nahomgh.portfolio.auth.dto.UserDTO;
 import io.github.nahomgh.portfolio.exceptions.*;
 import io.github.nahomgh.portfolio.repository.UserRepository;
 import jakarta.mail.MessagingException;
@@ -16,11 +16,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class AuthenticationService {
@@ -50,11 +50,23 @@ public class AuthenticationService {
         throw new ResourceNotFoundException("ERROR: Account NOT associated with current user");
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public UserDTO signUp(RegisterDTO userSignUpDetails) {
         Optional<User> user = userRepository.findByEmail(userSignUpDetails.email());
         if(user.isPresent()) {
-            logger.error("ERROR: User already exists");
-            throw new UserAlreadyExistsException("User with email " + userSignUpDetails.email() + " already exists!");
+            logger.error("Registration attempt for existing user");
+            if(!user.get().isEnabled()) {
+                try {
+                    resendVerificationCode(user.get().getEmail());
+                }catch(MessagingException exception){
+                    logger.error("Failed to re-send verification email to user");
+                    logger.error("Exception: "+ exception.getMessage());
+                }
+                logger.info("Verification code sent via email to unverified user");
+                return new UserDTO(user.get());
+            }
+            logger.info("Attempt to register already verified user");
+            return new UserDTO(user.get());
         }
         User registeredUser = new User();
         registeredUser.setEmail(userSignUpDetails.email());
@@ -65,8 +77,12 @@ public class AuthenticationService {
         registeredUser.setEnabled(false);
 
         userRepository.save(registeredUser);
-        sendVerificationEmail(registeredUser);
-
+        try{
+            sendVerificationEmail(registeredUser);
+        }catch(Exception e){
+            logger.error("ERROR: Failed to send verification for email "+userSignUpDetails.email()+", rolling back sign up transaction.\n"+e.getMessage()+"\n"+e.getStackTrace());
+            throw new EmailDeliveryException("Unable to send email and complete email verification. Please try again.");
+        }
         logger.info("SUCCESS: User created");
         return new UserDTO(registeredUser);
     }
@@ -74,7 +90,7 @@ public class AuthenticationService {
     public String authenticate(LoginRequestDTO loginRequest) {
         User user = findUser(loginRequest.email());
         if(!user.isEnabled()) {
-            throw new RuntimeException("Account not verified, please verify your account");
+            throw new AuthenticationException("Invalid email or password.");
         }
         Authentication authentication =
                 authManager.authenticate(
@@ -83,7 +99,7 @@ public class AuthenticationService {
             return jwtService.generateToken(loginRequest.email());
 
         }
-        throw new UserNotFoundException("Unable to verify user");
+        throw new AuthenticationException("Invalid email or password.");
     }
 
     public void verifyUser(VerifyUserDTO verificationInput) {
@@ -102,7 +118,7 @@ public class AuthenticationService {
         }
     }
 
-    public void resendVerificationCode(String email){
+    public void resendVerificationCode(String email) throws MessagingException{
         User user = findUser(email);
         if(user.isEnabled())
             throw new RuntimeException("Account already verified");
@@ -112,7 +128,7 @@ public class AuthenticationService {
         userRepository.save(user);
     }
 
-    public void sendVerificationEmail(User user) {
+    public void sendVerificationEmail(User user) throws MessagingException {
         String subject = "Account Verification";
         String verificationCode = user.getVerificationCode();
         String htmlMsg = """
@@ -138,11 +154,7 @@ public class AuthenticationService {
           </html>
             """.formatted(user.getUsername(), verificationCode);
 
-        try{
-            emailService.sendVerificationEmail(user.getEmail(),subject,htmlMsg);
-        }catch(MessagingException e){
-            logger.error("ERROR: Failed to send verification code to "+user.getEmail()+":\n"+e.getMessage());
-        }
+        emailService.sendVerificationEmail(user.getEmail(),subject,htmlMsg);
     }
 
     private String generateVerificationCode(){

@@ -1,6 +1,6 @@
 package io.github.nahomgh.portfolio.auth.validator;
 
-import io.github.nahomgh.portfolio.dto.RegisterDTO;
+import io.github.nahomgh.portfolio.auth.dto.RegisterDTO;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
