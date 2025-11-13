@@ -1,10 +1,8 @@
 package io.github.nahomgh.portfolio.service;
 
-import io.github.nahomgh.portfolio.auth.domain.User;
 import io.github.nahomgh.portfolio.auth.service.EmailService;
-import io.github.nahomgh.portfolio.dto.UserDTO;
+import io.github.nahomgh.portfolio.auth.dto.UserDTO;
 import io.github.nahomgh.portfolio.repository.UserRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service

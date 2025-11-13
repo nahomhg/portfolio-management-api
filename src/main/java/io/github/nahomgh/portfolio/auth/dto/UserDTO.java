@@ -1,4 +1,4 @@
-package io.github.nahomgh.portfolio.dto;
+package io.github.nahomgh.portfolio.auth.dto;
 
 import io.github.nahomgh.portfolio.auth.domain.User;
 

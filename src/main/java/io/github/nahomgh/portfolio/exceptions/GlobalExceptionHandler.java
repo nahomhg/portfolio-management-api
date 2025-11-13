@@ -20,9 +20,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(resourceNotFound.getMessage()));
     }
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException userAlreadyExistsException){
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException userAlreadyExistsException){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(userAlreadyExistsException.getMessage()));
+    }
+
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<ErrorResponse> handleEmailDeliveryException(EmailDeliveryException emailDeliveryException){
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new ErrorResponse(emailDeliveryException.getMessage()));
     }
 
     @ExceptionHandler(InputValidationException.class)
@@ -77,6 +82,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException constraintViolationException){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(constraintViolationException.getMessage()));
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
