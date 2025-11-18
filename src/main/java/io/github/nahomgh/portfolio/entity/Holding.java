@@ -28,11 +28,11 @@ public class Holding {
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
-    @Column(name = "avg_cost_basis")
-    private BigDecimal avgCostBasis;
-
     @Column(name="total_cost_basis")
     private BigDecimal totalCostBasis;
+
+    @Column(name="avg_cost_basis")
+    private BigDecimal avgCostBasis;
 
     @Version
     private Long version;
@@ -81,13 +81,7 @@ public class Holding {
     }
 
     public BigDecimal getAvgCostBasis() {
-        if(getUnits() != null && getUnits().compareTo(BigDecimal.ZERO) > 0) {
-            if (getTotalCostBasis() == null || getTotalCostBasis().compareTo(BigDecimal.ZERO) == 0) {
-                return BigDecimal.ZERO;
-            }
-            return getTotalCostBasis().divide(getUnits(), 8, RoundingMode.HALF_UP);
-        }
-        throw new InsufficientFundsException("Insufficient Units");
+        return avgCostBasis;
     }
 
 

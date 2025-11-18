@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -36,7 +37,7 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity<TransactionDTO> createTransaction(HttpServletRequest request, @Valid @RequestBody TransactionRequest transactionRequest, Authentication authentication){
-        String idempotencyKey = request.getHeader("IDEMPOTENCY_KEY");
+        String idempotencyKey = StringEscapeUtils.escapeHtml4(request.getHeader("IDEMPOTENCY_KEY"));
         User user = (User) authentication.getPrincipal();
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.createTransaction(transactionRequest, idempotencyKey, user.getId()));
 
