@@ -1,6 +1,7 @@
 package io.github.nahomgh.portfolio.entity;
 
 import io.github.nahomgh.portfolio.auth.domain.User;
+import io.github.nahomgh.portfolio.exceptions.InputValidationException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -68,12 +69,21 @@ public class Transaction {
     public Transaction(String asset, TransactionType transactionType, BigDecimal units, BigDecimal price,
                        String clientIdempotencyKey, User user) {
         if (clientIdempotencyKey == null || clientIdempotencyKey.trim().isEmpty()) {
-            throw new IllegalArgumentException("External transaction ID cannot be null or empty");
+            throw new IllegalArgumentException("Transaction Idempotency Key ID cannot be null or empty");
         }
+        if (units == null || units.compareTo(BigDecimal.ZERO) == 0) {
+            throw new InputValidationException("Units cannot be empty or 0");
+        }
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0
+                || (price.compareTo(BigDecimal.ZERO) != 0 && transactionType == TransactionType.AIRDROP)
+                || (price.compareTo(BigDecimal.ZERO) == 0 && transactionType != TransactionType.AIRDROP)){
+            throw new InputValidationException("Prices must be greater than 0 for non-airdrop Transactions");
+            }
+
         this.asset = asset;
-        this.transactionType = transactionType;
         this.units = units;
         this.totalPrice = price;
+        this.transactionType = transactionType;
         this.pricePerUnit = price.divide(units,8, RoundingMode.HALF_UP);
         this.user = user;
         this.clientIdempotencyKey = clientIdempotencyKey;

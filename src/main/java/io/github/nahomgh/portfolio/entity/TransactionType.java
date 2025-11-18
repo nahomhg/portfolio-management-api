@@ -2,7 +2,8 @@ package io.github.nahomgh.portfolio.entity;
 
 public enum TransactionType {
     BUY("BUY"),
-    SELL("SELL");
+    SELL("SELL"),
+    AIRDROP("AIRDROP");
 
     private String value;
 

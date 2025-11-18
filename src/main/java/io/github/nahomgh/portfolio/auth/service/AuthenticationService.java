@@ -8,6 +8,7 @@ import io.github.nahomgh.portfolio.auth.dto.UserDTO;
 import io.github.nahomgh.portfolio.exceptions.*;
 import io.github.nahomgh.portfolio.repository.UserRepository;
 import jakarta.mail.MessagingException;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -88,22 +89,25 @@ public class AuthenticationService {
     }
 
     public String authenticate(LoginRequestDTO loginRequest) {
-        User user = findUser(loginRequest.email());
+        String userEmail = StringEscapeUtils.escapeHtml4(loginRequest.email());
+        String userPw = StringEscapeUtils.escapeHtml4(loginRequest.password());
+        User user = findUser(userEmail);
         if(!user.isEnabled()) {
             throw new AuthenticationException("Invalid email or password.");
         }
         Authentication authentication =
                 authManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(loginRequest.email(),loginRequest.password()));
+                        new UsernamePasswordAuthenticationToken(userEmail,userPw));
         if(authentication.isAuthenticated()) {
-            return jwtService.generateToken(loginRequest.email());
+            return jwtService.generateToken(userEmail);
 
         }
         throw new AuthenticationException("Invalid email or password.");
     }
 
     public void verifyUser(VerifyUserDTO verificationInput) {
-        User user = findUser(verificationInput.getEmail());
+        String userEmail = StringEscapeUtils.escapeHtml4(verificationInput.getEmail());
+        User user = findUser(userEmail);
         if (user.getVerificationExpiration().isBefore(Instant.now())) {
             throw new VerificationExpirationException("Verification Code Expired");
         }
@@ -159,8 +163,12 @@ public class AuthenticationService {
 
     private String generateVerificationCode(){
         SecureRandom random = new SecureRandom();
-        int code = 100000 + random.nextInt(900000); // Ensures 6 digits
-        return String.valueOf(code);
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder code = new StringBuilder();
+        for(int i = 0; i < 8; i++){
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return code.toString();
     }
 
     private User getAuthenticatedUser(){
