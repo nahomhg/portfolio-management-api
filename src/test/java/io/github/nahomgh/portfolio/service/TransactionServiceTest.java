@@ -43,6 +43,8 @@ class TransactionServiceTest {
     private HoldingRepository holdingRepository;
 
     @InjectMocks
+    private ProcessTransactionsService processTransactions;
+
     private TransactionService transactionService;
 
     private String idempotencyKey;
@@ -55,6 +57,14 @@ class TransactionServiceTest {
         testUser = new User("nahom_gh@outlook.com","bob","bob123");
         testUser.setEnabled(true);
         testUser.setId(1L);
+
+        //
+        transactionService = new TransactionService(
+                transactionRepository,
+                priceDataService,
+                userRepository,
+                processTransactions
+        );
 
         //
         Mockito.lenient().when(transactionRepository.findTransactionByUserIdAndClientIdempotencyKey(1L,idempotencyKey)).thenReturn(Optional.empty());
@@ -70,11 +80,13 @@ class TransactionServiceTest {
 
     private Transaction createTransactionObject(String assetName, String idempotencyKey, User testUser, TransactionType transactionType, BigDecimal unitAmount){
         BigDecimal totalCost = createAsset().price().multiply(unitAmount);
+        BigDecimal pricePerUnit = createAsset().price();
         return new Transaction(
                 assetName,
                 transactionType,
                 unitAmount,
                 totalCost,
+                pricePerUnit,
                 idempotencyKey,
                 testUser,
                 Instant.now()
@@ -82,7 +94,6 @@ class TransactionServiceTest {
     }
 
     private TransactionRequest createNewTransactionRequest(String assetName, TransactionType transactionType, BigDecimal unitAmount){
-
         return new TransactionRequest(
                 assetName,
                 transactionType,
@@ -189,7 +200,6 @@ class TransactionServiceTest {
 
         Holding btcHolding = new Holding(testUser,"BTC", BigDecimal.valueOf(2.3),BigDecimal.valueOf(55_000));
         Mockito.when(priceDataService.resolveAssetSymbol(sellTransactionRequest.asset())).thenReturn(btcHolding.getAsset());
-
         Mockito.when(holdingRepository.findByAssetAndUser_Id(btcHolding.getAsset(),testUser.getId())).thenReturn(Optional.of(btcHolding));
         Mockito.when(priceDataService.getAssetPrice(sellTransactionRequest.asset())).thenReturn(BigDecimal.valueOf(100_000));
 

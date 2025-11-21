@@ -38,9 +38,9 @@ public class Transaction {
     @Column(name = "txn_type", nullable = false, length = 16)
     private TransactionType transactionType;
 
-    @Column(name="total_price", nullable = false, updatable = false, precision = 38, scale = 8)
+    @Column(name="total_cost", nullable = false, updatable = false, precision = 38, scale = 8)
     @PositiveOrZero
-    private BigDecimal totalPrice;
+    private BigDecimal totalCost;
 
     @Column(name="pricePerUnit", nullable = false, updatable = false, precision = 38, scale = 8)
     private BigDecimal pricePerUnit;
@@ -66,7 +66,7 @@ public class Transaction {
 
     }
 
-    public Transaction(String asset, TransactionType transactionType, BigDecimal units, BigDecimal price,
+    public Transaction(String asset, TransactionType transactionType, BigDecimal units, BigDecimal totalCost, BigDecimal pricePerUnit,
                        String clientIdempotencyKey, User user) {
         if (clientIdempotencyKey == null || clientIdempotencyKey.trim().isEmpty()) {
             throw new IllegalArgumentException("Transaction Idempotency Key ID cannot be null or empty");
@@ -74,25 +74,25 @@ public class Transaction {
         if (units == null || units.compareTo(BigDecimal.ZERO) == 0) {
             throw new InputValidationException("Units cannot be empty or 0");
         }
-        if (price == null || price.compareTo(BigDecimal.ZERO) < 0
-                || (price.compareTo(BigDecimal.ZERO) != 0 && transactionType == TransactionType.AIRDROP)
-                || (price.compareTo(BigDecimal.ZERO) == 0 && transactionType != TransactionType.AIRDROP)){
+        if (totalCost == null || totalCost.compareTo(BigDecimal.ZERO) < 0
+                || (totalCost.compareTo(BigDecimal.ZERO) != 0 && transactionType == TransactionType.AIRDROP)
+                || (totalCost.compareTo(BigDecimal.ZERO) == 0 && transactionType != TransactionType.AIRDROP)){
             throw new InputValidationException("Prices must be greater than 0 for non-airdrop Transactions");
             }
 
         this.asset = asset;
         this.units = units;
-        this.totalPrice = price;
+        this.totalCost = totalCost;
         this.transactionType = transactionType;
-        this.pricePerUnit = price.divide(units,8, RoundingMode.HALF_UP);
+        this.pricePerUnit = pricePerUnit;
         this.user = user;
         this.clientIdempotencyKey = clientIdempotencyKey;
         this.transactionTimestamp = Instant.now();
     }
 
-    public Transaction(String asset, TransactionType transactionType, BigDecimal units, BigDecimal price,
+    public Transaction(String asset, TransactionType transactionType, BigDecimal units, BigDecimal totalCost, BigDecimal pricePerUnit,
                        String clientIdempotencyKey, User user, Instant transactionDate) {
-       this(asset, transactionType, units, price, clientIdempotencyKey, user);
+       this(asset, transactionType, units, totalCost, pricePerUnit, clientIdempotencyKey, user);
        this.transactionTimestamp = transactionDate;
     }
 
@@ -113,7 +113,7 @@ public class Transaction {
     }
 
     public BigDecimal getTotalPrice() {
-        return totalPrice;
+        return totalCost;
     }
 
     public BigDecimal getPricePerUnit() {
@@ -122,10 +122,6 @@ public class Transaction {
 
     public BigDecimal getUnits() {
         return units;
-    }
-
-    public String getClientIdempotencyKey() {
-        return clientIdempotencyKey;
     }
 
     public User getUser() {
@@ -137,7 +133,7 @@ public class Transaction {
         return "Transaction{" +
                 "asset='" + asset + '\'' +
                 ", transactionType=" + transactionType +
-                ", totalCost=" + totalPrice +
+                ", totalCost=" + totalCost +
                 ", pricePerUnit=" + pricePerUnit +
                 ", units=" + units +
                 ", transaction_timestamp=" + transactionTimestamp +

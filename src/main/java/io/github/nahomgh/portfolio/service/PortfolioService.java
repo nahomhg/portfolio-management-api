@@ -3,6 +3,7 @@ package io.github.nahomgh.portfolio.service;
 import io.github.nahomgh.portfolio.dto.HoldingDTO;
 import io.github.nahomgh.portfolio.dto.PortfolioDTO;
 import io.github.nahomgh.portfolio.entity.Holding;
+import io.github.nahomgh.portfolio.exceptions.PriceUnavailableException;
 import io.github.nahomgh.portfolio.repository.HoldingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +28,9 @@ public class PortfolioService {
 
     public PortfolioDTO getPortfolio(Long userId) {
         List<Holding> holdings = holdingRepository.findAllByUser_id(userId);
-        if (holdings.isEmpty())
+        if (holdings.isEmpty()) {
             return new PortfolioDTO(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        }
 
         Map<String, BigDecimal> priceCache = new HashMap<>();
         for(Holding holding : holdings){
@@ -51,10 +53,13 @@ public class PortfolioService {
         List<HoldingDTO> holdingsListDTO = new ArrayList<>();
         for (Holding holding : holdings) {
             BigDecimal currentAssetPrice = priceCache.get(holding.getAsset());
+            if(currentAssetPrice == null){
+                throw new PriceUnavailableException("Prices unavailable for asset "+holding.getAsset());
+            }
             BigDecimal holdingInvestment = holding.getTotalCostBasis().setScale(2, RoundingMode.HALF_UP);
             BigDecimal holdingValuation = currentAssetPrice.multiply(holding.getUnits()).setScale(2, RoundingMode.HALF_UP);
             BigDecimal unrealisedPnl = holdingValuation.subtract(holdingInvestment).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal portfolioWeight = holdingValuation.divide(totalValuation, 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+            BigDecimal portfolioWeight = totalValuation.compareTo(BigDecimal.ZERO) > 0 ? holdingValuation.divide(totalValuation, 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)) : BigDecimal.ZERO;
 
             holdingsListDTO.add(
                     new HoldingDTO(
