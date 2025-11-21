@@ -6,7 +6,7 @@ import io.github.nahomgh.portfolio.entity.TransactionType;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record TransactionDTO(String asset, TransactionType transactionType, BigDecimal units, BigDecimal totalPrice, BigDecimal pricePerUnit, Instant transactionDate){
+public record TransactionDTO(String asset, TransactionType transactionType, BigDecimal units, BigDecimal marketValue, BigDecimal pricePerUnit, Instant transactionDate){
     public TransactionDTO(Transaction transaction){
         this(transaction.getAsset(),transaction.getTransactionType(),
                 transaction.getUnits(), transaction.getTotalPrice(),

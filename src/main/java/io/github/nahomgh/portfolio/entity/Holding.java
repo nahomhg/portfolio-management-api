@@ -40,11 +40,11 @@ public class Holding {
     public Holding() {
     }
 
-    public Holding(User user, String asset, BigDecimal units, BigDecimal avgCostBasis) {
+    public Holding(User user, String asset, BigDecimal units, BigDecimal pricePerUnit) {
         this.asset = asset;
         this.units = units;
         this.user = user;
-        this.avgCostBasis = avgCostBasis;
+        this.avgCostBasis = pricePerUnit;
         this.totalCostBasis = units.multiply(avgCostBasis);
     }
 

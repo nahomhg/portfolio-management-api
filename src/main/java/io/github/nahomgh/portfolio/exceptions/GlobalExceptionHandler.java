@@ -42,11 +42,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(transactionFailedException.getMessage()));
     }
 
-    @ExceptionHandler(AssetNotFoundException.class)
-    @ResponseBody
-    public ResponseEntity<ErrorResponse> handleAssetNotFoundException(AssetNotFoundException assetNotFound){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(assetNotFound.getMessage()));
-    }
 
     @ExceptionHandler(InsufficientFundsException.class)
     @ResponseBody
