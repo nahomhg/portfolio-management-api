@@ -85,7 +85,7 @@ public class ProcessTransactionsService {
                     holding.setTotalCostBasis(updatedTotalCostAfterSell);
                     holdingRepository.save(holding);
                 }
-            }else if(existingHolding.isEmpty()){
+            }else {
                 logger.error(no_holdings_for_specified_asset_msg);
                 throw new ResourceNotFoundException(no_holdings_for_specified_asset_msg);
             }

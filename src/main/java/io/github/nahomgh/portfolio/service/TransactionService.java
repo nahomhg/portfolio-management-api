@@ -54,11 +54,10 @@ public class TransactionService {
 
     @Transactional(rollbackOn = Exception.class)
     public TransactionDTO createTransaction(@Valid TransactionRequest request, final String idempotencyKey, Long userId) {
-        User userInfo = userRepository.findById(userId).orElseThrow( () -> {
-            throw new UserNotFoundException("User with ID "+userId+" NOT Found. Transaction NOT processed.");
-        });
+        User userInfo = userRepository.findById(userId).orElseThrow( () -> new UserNotFoundException("User with ID " + userId + " NOT Found. Transaction NOT processed."));
         Optional<Transaction> existingTransaction = transactionRepository.findTransactionByUserIdAndClientIdempotencyKey(userId,idempotencyKey);
         if(existingTransaction.isPresent()){
+            logger.info("INFO: Transaction already exists - returning transaction DTO to user");
             throw new DuplicateTransactionException("Transaction Already Exists", new TransactionDTO(existingTransaction.get()));
         }
         String assetName = priceDataService.resolveAssetSymbol(StringEscapeUtils.escapeHtml4(request.asset()));
