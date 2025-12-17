@@ -16,8 +16,7 @@ public class VerifyUserDTO {
     private String email;
 
     @NotBlank(message = "Verification Code CANNOT be blank.")
-    @Size(min = 8, max = 8, message = "Verification code must be 6 digits")
-    @Pattern(regexp = "^[0-9]{8}$", message = "Verification code must be numeric")
+    @Pattern(regexp = "^[A-Z0-9]{8}$", message = "Verification code must be exactly 8 alphanumeric characters.")
     private String verificationCode;
 
 }

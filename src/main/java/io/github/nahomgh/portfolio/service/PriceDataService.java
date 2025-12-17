@@ -78,19 +78,30 @@ public class PriceDataService {
 
     @Cacheable(value="prices", key="#assetName")
     public BigDecimal getAssetPrice(String assetName){
-        URI uri = UriComponentsBuilder
-                .fromUriString(SPECIFIC_ASSET_URI)
-                .queryParam("ids", assetName) //totalCost?ids=bitcoin&vs_currencies=usd
-                .queryParam("vs_currencies","usd")
-                .build().toUri();
+            URI uri = UriComponentsBuilder
+                    .fromUriString(SPECIFIC_ASSET_URI)
+                    .queryParam("ids", assetName) //totalCost?ids=bitcoin&vs_currencies=usd
+                    .queryParam("vs_currencies", "usd")
+                    .build().toUri();
 
-        Map<String, Map<String, BigDecimal>> response =
-                fetchMarketData(uri,
-                        new ParameterizedTypeReference<Map<String, Map<String, BigDecimal>>>(){});
-        if(response.isEmpty())
-            throw new UnsupportedAssetException("Unsupported Asset - Please Check Spelling Or Provide Another Asset");
-        logger.warn("Asset information response: "+response.get(assetName));
-        return response.get(assetName).get("usd");
+
+            Map<String, Map<String, BigDecimal>> response =
+                    fetchMarketData(uri,
+                            new ParameterizedTypeReference<Map<String, Map<String, BigDecimal>>>() {
+                            });
+            if (response.isEmpty())
+                throw new UnsupportedAssetException("Unsupported Asset - Please Check Spelling Or Provide Another Asset");
+            Map<String, BigDecimal> response_map = response.get(assetName);
+            if(response_map.get(assetName) == null || !response_map.containsKey("usd")){
+                logger.error("ERROR: Asset '{}' NOT Available.", assetName);
+                 throw new PriceUnavailableException("Asset Prices Not Available");
+            }
+            BigDecimal assetPrice = response_map.get("usd");
+            if(assetPrice == null){
+                logger.error("ERROR: '{}' Prices NOT Available.", assetName);
+                throw new PriceUnavailableException("Asset Prices Not Available");
+            }
+            return assetPrice;
     }
 
     public BigDecimal getHistoricalAssetPrice(String assetNamePassed, LocalDate  transactionDate){
@@ -119,7 +130,7 @@ public class PriceDataService {
                     httpEntity,
                     String.class
             );
-            logger.info("Asset List Prices Updated");
+
             JsonNode jsonDataRoot = objectMapper.readTree(response.getBody());
             BigDecimal assetPrice = jsonDataRoot
                     .path("market_data")

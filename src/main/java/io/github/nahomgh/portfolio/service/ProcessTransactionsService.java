@@ -29,7 +29,7 @@ public class ProcessTransactionsService {
 
     @Retryable(
             retryFor = OptimisticLockingFailureException.class,
-            backoff = @Backoff(delay = 50, multiplier = 2)
+            backoff = @Backoff(delay = 500, multiplier = 3)
     )
     public void process(User user, String assetName, BigDecimal units, BigDecimal pricePerUnit, BigDecimal totalCost, TransactionType transactionType){
         String insufficient_holdings_msg = "Insufficient Funds: You do NOT hold enough units to sell.";
@@ -48,7 +48,12 @@ public class ProcessTransactionsService {
 
                 if(transactionType == TransactionType.BUY){
                     updatedTotalCost = currentTotalCost.add(totalCost);
-                    updatedAvgCostBasis = updatedTotalCost.divide(updatedTotalUnits, 8, RoundingMode.HALF_UP);
+                    if(updatedTotalCost.compareTo(BigDecimal.ZERO) > 0){
+                        updatedAvgCostBasis = updatedTotalCost.divide(updatedTotalUnits, 8, RoundingMode.HALF_UP);
+                    }
+                    else{
+                        updatedAvgCostBasis = holding.getAvgCostBasis();
+                    }
                 }else{
                     updatedTotalCost = currentTotalCost;
                     updatedAvgCostBasis = updatedTotalCost.divide(updatedTotalUnits, 8, RoundingMode.HALF_UP);

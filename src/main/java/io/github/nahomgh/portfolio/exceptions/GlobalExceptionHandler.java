@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException userAlreadyExistsException){
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(userAlreadyExistsException.getMessage()));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(userAlreadyExistsException.getMessage()));
     }
 
     @ExceptionHandler(EmailDeliveryException.class)
@@ -78,6 +78,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(constraintViolationException.getMessage()));
     }
 
+    @ExceptionHandler(MissingKeyException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorResponse> handleMissingKeyException(MissingKeyException missingKeyException){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(missingKeyException.getMessage()));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody

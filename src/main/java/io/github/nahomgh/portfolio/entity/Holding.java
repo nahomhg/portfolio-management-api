@@ -3,6 +3,9 @@ package io.github.nahomgh.portfolio.entity;
 import io.github.nahomgh.portfolio.auth.domain.User;
 import io.github.nahomgh.portfolio.exceptions.InsufficientFundsException;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,18 +23,27 @@ public class Holding {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Column(name="asset", nullable = false)
     private String asset;
 
+    @NotNull
+    @Positive
+    @Column(name="units", nullable = false)
     private BigDecimal units;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
-    @Column(name="total_cost_basis")
+    @NotNull
+    @Positive
+    @Column(name="total_cost_basis", nullable = false)
     private BigDecimal totalCostBasis;
 
-    @Column(name="avg_cost_basis")
+    @NotNull
+    @Positive
+    @Column(name="avg_cost_basis", nullable = false)
     private BigDecimal avgCostBasis;
 
     @Version

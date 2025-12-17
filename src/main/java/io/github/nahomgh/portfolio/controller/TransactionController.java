@@ -3,14 +3,12 @@ package io.github.nahomgh.portfolio.controller;
 import io.github.nahomgh.portfolio.auth.domain.User;
 import io.github.nahomgh.portfolio.dto.TransactionDTO;
 import io.github.nahomgh.portfolio.entity.TransactionRequest;
-import io.github.nahomgh.portfolio.entity.TransactionType;
 import io.github.nahomgh.portfolio.exceptions.DuplicateTransactionException;
 import io.github.nahomgh.portfolio.exceptions.IdempotencyKeyConflictException;
+import io.github.nahomgh.portfolio.exceptions.MissingKeyException;
 import io.github.nahomgh.portfolio.service.TransactionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +39,8 @@ public class TransactionController {
     @PostMapping
     public ResponseEntity<?> createTransaction(HttpServletRequest request, @Valid @RequestBody TransactionRequest transactionRequest, Authentication authentication){
         try {
+            if(request.getHeader("IDEMPOTENCY_KEY") == null)
+                throw new MissingKeyException("Idempotency Key missing from headers");
             String idempotencyKey = StringEscapeUtils.escapeHtml4(request.getHeader("IDEMPOTENCY_KEY"));
             User user = (User) authentication.getPrincipal();
             return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.createTransaction(transactionRequest, idempotencyKey, user.getId()));
