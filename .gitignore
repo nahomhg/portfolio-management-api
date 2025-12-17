@@ -7,15 +7,13 @@ target/
 *.zip
 *.log
 
-.env
-application-local.yml
-application-local_original.yml
+**/.env
+**/application-local.yml
+**/application-local_original.yml
 *.local.yml
 src/main/resources/application-local.yml
 src/main/resources/application-local_original.yml
 
-# Sensitive file location
-api keys
 
 # Maven wrapper
 .mvn/wrapper/maven-wrapper.jar

@@ -1,4 +1,23 @@
 services:
+  api:
+    build: .
+    image: portfolio-mgmt-api:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/crypto_portfolio
+      - DB_USER=${DB_USER}
+      - DB_PW=${DB_PW}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_EXPIRATION_MS=3600000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: "no"
   postgres:
     image: postgres:13
     environment:

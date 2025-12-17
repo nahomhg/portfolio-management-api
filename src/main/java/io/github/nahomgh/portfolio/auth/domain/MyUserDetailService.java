@@ -14,21 +14,24 @@ import java.util.Optional;
 @Service
 public class MyUserDetailService implements UserDetailsService {
 
-    private UserRepository repo;
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
+    private final UserRepository userRepository;
 
-    public MyUserDetailService(UserRepository repo){
-        this.repo = repo;
+    private static final Logger logger = LoggerFactory.getLogger(MyUserDetailService.class);
+
+    public MyUserDetailService(UserRepository userRepository){
+        this.userRepository = userRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = repo.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
 
         if(user.isEmpty())
-            user = repo.findByEmail(username); // Could be an email
+            user = userRepository.findByEmail(username); // Could be an email
 
-        return user.orElseThrow(()->
-                new UserNotFoundException("User NOT found"));
+        return user.orElseThrow(()-> {
+            logger.error("Cannot Find User");
+            return new UserNotFoundException("User NOT found");
+        });
     }
 }

@@ -52,7 +52,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDTO verifyUserDTO) {
+    public ResponseEntity<?> verifyUser(@Valid @RequestBody VerifyUserDTO verifyUserDTO) {
         try {
             userService.verifyUser(verifyUserDTO);
             return ResponseEntity.ok("Account verified!");

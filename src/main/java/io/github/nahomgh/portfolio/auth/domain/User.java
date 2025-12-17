@@ -2,8 +2,7 @@ package io.github.nahomgh.portfolio.auth.domain;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,14 +25,17 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     @Email
     @NotBlank
     private String email;
 
     @Column(unique = true)
+    @NotBlank
+    @Size(min = 3, max = 25)
     private String username;
 
+    @NotBlank
     @Column(nullable = false)
     private String password;
 
