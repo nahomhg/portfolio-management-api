@@ -72,3 +72,33 @@ _Why compute Portfolio Valuation on request instead of storing and reading from 
 
 ##  Current Limitations and Future Planning
 - Free API usage limits access to historical data i.e. transactions older than a year cannot have their prices retrieved.
+
+###  Getting Started
+
+**Prerequisites:** 
+- Docker & Docker Compose
+
+1. Clone the repo
+
+```bash
+git clone https://github.com/nahomhg/portfolio-management-api.git
+cd portfolio-management-api
+```
+
+2. Configure Environment 
+
+Create a .env file from the example:
+
+```bash
+cp .env.template .env
+# Edit .env with your own passwords if desired
+```
+
+3. Run Application
+
+```bash
+docker-compose up --build
+```
+
+**4. Verify**
+Access http://localhost:8080/actuator/health to see system status.
