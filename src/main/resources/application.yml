@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:classpath:application-local_original.yml
+    import: "optional:file:.env[.properties]"
 
   datasource:
     url: ${DB_URL}
@@ -75,3 +75,8 @@ management:
 auth:
   email:
     template-path: ${VERIFICATION_EMAIL_TEMPLATE_PATH}
+
+API_TOP_ASSETS_ENDPOINT: ${API_TOP_ASSETS_ENDPOINT}
+API_HISTORICAL_PRICE_ENDPOINT: ${API_HISTORICAL_PRICE_ENDPOINT}
+API_SPECIFIC_ASSET_ENDPOINT: ${API_SPECIFIC_ASSET_ENDPOINT}
+API_KEY_COINGECKO: ${API_KEY_COINGECKO}
