@@ -10,6 +10,10 @@ import io.github.nahomgh.portfolio.service.TransactionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.commons.text.StringEscapeUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,9 +35,17 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionDTO>> getUserTransactions(Authentication authentication){
+    public ResponseEntity<Page<TransactionDTO>> getUserTransactions(Authentication authentication,
+                                                                         @RequestParam(defaultValue = "0") int page,
+                                                                         @RequestParam(defaultValue = "20") int size,
+                                                                    @RequestParam(defaultValue = "desc") String sort){
         User user = (User) authentication.getPrincipal();
-        return ResponseEntity.ok().body(transactionService.getTransactions(user.getId()));
+        Sort sortOrder = sort.equalsIgnoreCase("desc") || sort.equalsIgnoreCase("descending") ?
+                Sort.by("transactionTimestamp").descending()
+                : Sort.by("transactionTimestamp").ascending();
+        
+        Pageable pageable = PageRequest.of(page,size, sortOrder);
+        return ResponseEntity.ok().body(transactionService.getTransactions(user.getId(), pageable));
     }
 
     @PostMapping
