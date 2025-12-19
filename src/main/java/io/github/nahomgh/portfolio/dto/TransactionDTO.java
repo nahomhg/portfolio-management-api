@@ -2,11 +2,17 @@ package io.github.nahomgh.portfolio.dto;
 
 import io.github.nahomgh.portfolio.entity.Transaction;
 import io.github.nahomgh.portfolio.entity.TransactionType;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public record TransactionDTO(String asset, TransactionType transactionType, BigDecimal units, BigDecimal marketValue, BigDecimal pricePerUnit, Instant transactionDate){
+public record TransactionDTO(String asset,
+                             TransactionType transactionType,
+                             BigDecimal units,
+                             BigDecimal marketValue,
+                             BigDecimal pricePerUnit,
+                             Instant transactionDate){
     public TransactionDTO(Transaction transaction){
         this(transaction.getAsset(),transaction.getTransactionType(),
                 transaction.getUnits(), transaction.getTotalPrice(),

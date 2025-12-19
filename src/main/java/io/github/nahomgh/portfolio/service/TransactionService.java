@@ -17,6 +17,10 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +50,10 @@ public class TransactionService {
         this.processTransaction = processTransaction;
     }
 
-    public List<TransactionDTO> getTransactions(Long userId) {
+    public Page<TransactionDTO> getTransactions(Long userId, Pageable pageable) {
         Optional<User> userDetails = userRepository.findById(userId);
         if (userDetails.isPresent()) {
-            return transactionRepository.findTransactionsByUserId(userId).stream().map(TransactionDTO::new).toList();
+          return transactionRepository.findTransactionsByUserId(userId, pageable).map(TransactionDTO::new);
         }
         logger.error("ERROR: User not found");
         throw new UserNotFoundException("User not Found");
