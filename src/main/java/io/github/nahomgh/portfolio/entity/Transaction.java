@@ -42,7 +42,7 @@ public class Transaction {
     @PositiveOrZero
     private BigDecimal totalCost;
 
-    @Column(name="pricePerUnit", nullable = false, updatable = false, precision = 38, scale = 8)
+    @Column(name="price_per_unit", nullable = false, updatable = false, precision = 38, scale = 8)
     private BigDecimal pricePerUnit;
 
     @Positive
