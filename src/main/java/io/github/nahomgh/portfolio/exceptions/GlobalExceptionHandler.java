@@ -101,6 +101,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ValidationsErrorResponse(message, errors));
     }
 
+    @ExceptionHandler(UnavailableAlgorithmException.class)
+    @ResponseBody
+    public ResponseEntity<?> handleMethodUnavailableAlgorithm(UnavailableAlgorithmException unavailableAlgorithmException){
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+    }
+
 
 
 }

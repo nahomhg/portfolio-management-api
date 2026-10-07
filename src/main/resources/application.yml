@@ -17,21 +17,23 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
-  cache:
-    type: ${CACHE_TYPE:simple}
-    cache-names: prices
 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${SUPPORT_EMAIL:}
-    password: ${APP_PASSWORD:}
+    username: ${EMAIL_FROM}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 3000
           auth: true
           starttls:
             enable: true
+
+
 
   flyway:
     baseline-on-migrate: true
