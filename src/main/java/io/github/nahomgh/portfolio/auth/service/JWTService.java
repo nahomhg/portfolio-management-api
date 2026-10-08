@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ public class JWTService {
     @Value("${security.jwt.secret-key:}")
     private String secretKeyBase64;
 
+    @Getter
     @Value("${security.jwt.expiration-time:3600000}")
     private long expirationMs;
 
@@ -38,14 +40,7 @@ public class JWTService {
     public void initKey(){
 
         if((secretKeyBase64 == null) || (secretKeyBase64.isBlank())){
-            try{
-                KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
-                signingKey = keyGenerator.generateKey();
-                secretKeyBase64 = Base64.getEncoder().encodeToString(signingKey.getEncoded());
-                logger.warn("No JWT secret configured. Generated a temporary key for this run, token will be invalid after restart.");
-            }catch (GeneralSecurityException e){
-                throw new IllegalStateException("Failed to initialise JWT signing key!",e);
-            }
+            throw new IllegalArgumentException("CRITICAL:\n JWT secret has NOT been initialised in the environment variables. Please set a valid signing key in the environment variables, otherwise application won't start.");
         }else{
             byte[] keyBytes = Decoders.BASE64.decode(secretKeyBase64);
             signingKey = Keys.hmacShaKeyFor(keyBytes);
@@ -101,10 +96,6 @@ public class JWTService {
             return subject.equals(user.getEmail());
 
         return false;
-    }
-
-    public long getExpirationMs() {
-        return expirationMs;
     }
 
     private boolean isTokenExpired(String token){
