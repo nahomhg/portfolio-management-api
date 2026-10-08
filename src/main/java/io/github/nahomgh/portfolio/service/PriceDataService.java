@@ -156,6 +156,7 @@ public class PriceDataService {
          // Headers
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
+        headers.set("x-cg-demo-api-key", API_KEY_COINGECKO);
 
         HttpEntity<String> httpEntity = new HttpEntity<>(headers); // Adds the headers above into the httpEntity
         try {
@@ -166,7 +167,6 @@ public class PriceDataService {
                     responseType
             );
             logger.info("Asset List Prices Updated");
-
             return response.getBody();
         }catch(ResourceAccessException e){
             throw new PriceUnavailableException("Unable to retrieve prices from API");
